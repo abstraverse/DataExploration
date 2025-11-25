@@ -18,6 +18,7 @@ PythonProject/
 │   └── utils/             # Helper functions
 ├── config/                # Configuration files
 ├── notebooks/             # Jupyter notebooks for exploration
+├── reports/               # Generated visualization plots
 ├── tests/                 # Unit tests
 ├── requirements.txt       # Python dependencies
 └── main.py               # Main entry point
@@ -32,6 +33,7 @@ PythonProject/
 - **Result Prediction**: Predicts game outcome (win/loss/draw)
 - **Model Selection Override**: Allows choosing the model (Random Forest / Logistic Regression / XGBoost) via `--model-type` argument
 - **Rating Difference Feature**: Automatically adds `rating_diff = white_rating - black_rating` to improve model performance
+- **Visualization**: Generates Confusion Matrix heatmaps to analyze model errors (e.g., distinguishing Draws from Wins)
 
 ## Setup
 
@@ -152,6 +154,34 @@ After running, you'll find in the `experiments/` directory:
 The experiment trains all three models (Baseline, Logistic Regression, Random Forest) for each configuration and compares results.
 
 See `EXPERIMENT_DESCRIPTION.md` for detailed methodology and interpretation.
+
+## Visual Analysis
+
+Understand where your models make mistakes using generated Confusion Matrices.
+
+### Generating Reports
+Run the visualization script to evaluate all trained models:
+
+```bash
+python reports/visualize_results.py
+```
+This will create PNG heatmaps in the **reports/ directory**:
+
+- matrix_statistical_baseline.png
+
+- matrix_logistic_regression.png
+
+- matrix_random_forest.png
+
+### How to read the Confusion Matrix?
+
+**Y-Axis (True Label):** The actual result of the game.
+
+**X-Axis (Predicted Label):** What the model predicted.
+
+**Diagonal:** Correct predictions (darker color is better).
+
+**Off-diagonal:** Errors (e.g., if the "Draw" row is light, the model struggles to predict draws).
 
 ## Data Sources
 

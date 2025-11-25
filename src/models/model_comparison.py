@@ -18,89 +18,77 @@ warnings.filterwarnings('ignore')
 
 class StatisticalBaselineModel:
     """
-    Statistical baseline model based on rating difference.
-    Predicts outcome based solely on player rating difference.
+    Statistical baseline model based on rating difference (Elo formula).
+    Predicts outcome probability using the standard logistic distribution.
     """
-    
+
     def __init__(self):
         """Initialize the statistical baseline model."""
         self.name = "Statistical Baseline (Rating-based)"
         self.description = (
             "A simple statistical model that predicts game outcomes based solely on "
-            "the rating difference between players. Higher rated player is predicted to win. "
-            "This serves as a baseline to compare against more sophisticated models."
+            "the rating difference between players using the standard Elo formula. "
+            "It serves as a specialized benchmark for chess engines."
         )
-        self.model = None
-    
+        self.classes_ = None
+
     def fit(self, X: pd.DataFrame, y: pd.Series):
         """
-        Fit the model (baseline doesn't need training, but we store data for evaluation).
-        
-        Args:
-            X: Feature DataFrame (must contain 'rating_diff' or 'white_rating' and 'black_rating')
-            y: Target Series
+        Fit the model (stores target classes to align probabilities correctly).
         """
-        self.X_train = X
-        self.y_train = y
-    
+        self.classes_ = np.unique(y)
+        return self
+
     def predict(self, X: pd.DataFrame) -> np.ndarray:
-        """
-        Predict based on rating difference.
-        
-        Args:
-            X: Feature DataFrame
-        
-        Returns:
-            Predictions array
-        """
-        # Get rating difference
-        if 'rating_diff' in X.columns:
-            rating_diff = X['rating_diff'].values
-        elif 'white_rating' in X.columns and 'black_rating' in X.columns:
-            rating_diff = X['white_rating'].values - X['black_rating'].values
-        else:
-            # If no rating info, predict most common class
-            if hasattr(self, 'y_train') and len(self.y_train) > 0:
-                most_common = self.y_train.mode()[0] if hasattr(self.y_train, 'mode') else 'white_wins'
-            else:
-                most_common = 'white_wins'
-            return np.array([most_common] * len(X))
-        
-        # Predict based on rating difference
-        predictions = []
-        for diff in rating_diff:
-            if diff > 50:  # White significantly stronger
-                predictions.append('white_wins')
-            elif diff < -50:  # Black significantly stronger
-                predictions.append('black_wins')
-            else:  # Close ratings, predict draw
-                predictions.append('draw')
-        
-        return np.array(predictions)
-    
+        """Predict class labels (who wins?)."""
+        probs = self.predict_proba(X)
+        # Wybieramy indeks z najwyższym prawdopodobieństwem
+        max_indices = np.argmax(probs, axis=1)
+        return self.classes_[max_indices]
+
     def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
         """
-        Predict probabilities (simplified for baseline).
-        
-        Args:
-            X: Feature DataFrame
-        
-        Returns:
-            Probability array
+        Predict class probabilities using Elo formula.
+        P(White) = 1 / (1 + 10^(-diff/400))
         """
-        predictions = self.predict(X)
-        proba = []
-        
-        for pred in predictions:
-            if pred == 'white_wins':
-                proba.append([0.7, 0.2, 0.1])  # [white_wins, black_wins, draw]
-            elif pred == 'black_wins':
-                proba.append([0.1, 0.7, 0.2])
-            else:
-                proba.append([0.33, 0.33, 0.34])
-        
-        return np.array(proba)
+        # Obliczamy różnicę, jeśli jej nie ma w danych, liczymy w locie
+        if 'rating_diff' in X.columns:
+            diff = X['rating_diff']
+        else:
+            diff = X['white_rating'] - X['black_rating']
 
+        # Wzór Elo na szansę wygranej Białych (standard w szachach)
+        # Zwraca wartość od 0.0 do 1.0
+        expected_score_white = 1 / (1 + 10 ** (-diff / 400))
+
+        # Prawdopodobieństwo remisu (szacunkowe, stałe dla uproszczenia baseline)
+        # W prawdziwym życiu zależy od poziomu graczy, ale tu przyjmijmy 10%
+        prob_draw = 0.10
+
+        # P(W) + P(L) = 0.9
+        prob_white = expected_score_white * (1.0 - prob_draw)
+        prob_black = (1.0 - expected_score_white) * (1.0 - prob_draw)
+
+        proba_matrix = []
+
+        # Mapowanie prawdopodobieństw do odpowiednich kolumn
+        probs_map = {
+            'white_wins': prob_white,
+            'black_wins': prob_black,
+            'draw': pd.Series([prob_draw] * len(diff), index=diff.index),
+            '1-0': prob_white,
+            '0-1': prob_black,
+            '1/2-1/2': prob_draw
+        }
+
+        columns = []
+        for class_label in self.classes_:
+            if str(class_label) in probs_map:
+                columns.append(probs_map[str(class_label)])
+            else:
+                columns.append(pd.Series([0.0] * len(diff), index=diff.index))
+
+        return np.column_stack(columns)
 
 class ModelComparator:
     """Compares multiple ML models with the same metrics."""
