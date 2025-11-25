@@ -1,92 +1,138 @@
-# Chess Game Result Predictor
+# Przewidywanie Wyniku Partii Szachowej - Chess Game Result Predictor
 
-A machine learning project that predicts chess game results based on the first 20 moves, position evaluations, and player ratings using public games from Lichess.com.
+Projekt uczenia maszynowego do przewidywania wyników partii szachowych na podstawie pozycji z wybranego momentu gry, oceny pozycji oraz rankingów graczy. Implementacja oparta na publikacji "Predicting the Outcome of a Chess Game by Statistical and Machine Learning Techniques".
 
-## Project Structure
+**Język**: Python 3.10+  
+**Środowisko**: Virtual environment (venv)  
+**Dane**: Lichess.org API
+
+## Struktura Projektu
 
 ```
 PythonProject/
-├── data/                   # Raw and processed data
-│   ├── raw/               # Raw Lichess game data
-│   └── processed/         # Processed features and datasets
-├── models/                # Trained model files
-├── src/                   # Source code
-│   ├── data_collection/   # Lichess API integration
-│   ├── preprocessing/     # Data cleaning and preparation
-│   ├── features/          # Feature extraction (position eval, ratings)
-│   ├── models/            # ML model definitions and training
-│   └── utils/             # Helper functions
-├── config/                # Configuration files
-├── notebooks/             # Jupyter notebooks for exploration
-├── reports/               # Generated visualization plots
-├── tests/                 # Unit tests
-├── requirements.txt       # Python dependencies
-└── main.py               # Main entry point
+├── data/                   # Dane surowe i przetworzone
+│   ├── raw/               # Surowe dane partii z Lichess
+│   └── processed/         # Przetworzone cechy i zbiory danych
+├── models/                # Pliki wytrenowanych modeli
+├── src/                   # Kod źródłowy
+│   ├── data_collection/   # Integracja z API Lichess
+│   ├── preprocessing/     # Czyszczenie i przygotowanie danych
+│   ├── features/          # Ekstrakcja cech (ocena pozycji, rankingi)
+│   ├── models/            # Definicje i trenowanie modeli ML
+│   └── utils/             # Funkcje pomocnicze
+├── config/                # Pliki konfiguracyjne
+├── notebooks/             # Notatniki Jupyter do eksploracji
+├── reports/               # Wygenerowane wykresy wizualizacyjne
+├── experiments/           # Wyniki eksperymentów
+├── tests/                 # Testy jednostkowe
+├── requirements.txt       # Zależności Pythona
+└── main.py               # Główny punkt wejścia
 ```
 
-## Features
+## Funkcjonalności
 
-- **Data Collection**: Fetches public games from Lichess.com API
-- **Position Evaluation**: Analyzes chess positions using engine evaluation
-- **Player Ratings**: Incorporates player ELO ratings as features
-- **Move Analysis**: Extracts features from the first 20 moves
-- **Result Prediction**: Predicts game outcome (win/loss/draw)
-- **Model Selection Override**: Allows choosing the model (Random Forest / Logistic Regression / XGBoost) via `--model-type` argument
-- **Rating Difference Feature**: Automatically adds `rating_diff = white_rating - black_rating` to improve model performance
-- **Visualization**: Generates Confusion Matrix heatmaps to analyze model errors (e.g., distinguishing Draws from Wins)
+- **Zbieranie Danych**: Pobiera publiczne partie z API Lichess.com
+- **Ocena Pozycji**: Analizuje pozycje szachowe przy użyciu oceny silnika
+- **Rankingi Graczy**: Wykorzystuje rankingi ELO graczy jako cechy
+- **Analiza Ruchów**: Ekstrahuje cechy z pierwszych N pełnych ruchów
+- **Przewidywanie Wyniku**: Przewiduje wynik partii (wygrana/remis)
+- **Porównanie Modeli**: Automatycznie porównuje 3 modele (Baseline, Regresja Logistyczna, Random Forest)
+- **Równoległe Trenowanie**: Modele trenują jednocześnie, co przyspiesza proces
+- **Wizualizacja**: Generuje wykresy i tabele porównawcze wyników eksperymentów
 
-## Setup
+## Instalacja i Uruchomienie
 
-1. Create and activate a virtual environment:
+### Wymagania
+
+- Python 3.10 lub nowszy
+- pip (menedżer pakietów Pythona)
+- Git (opcjonalnie, dla repozytorium)
+
+### Krok 1: Przygotowanie Środowiska
+
+1. Utwórz i aktywuj środowisko wirtualne:
 ```bash
-# Create virtual environment
+# Utworzenie środowiska wirtualnego
 python3 -m venv venv
 
-# Activate virtual environment
-# On macOS/Linux:
+# Aktywacja środowiska wirtualnego
+# Na macOS/Linux:
 source venv/bin/activate
-# On Windows:
+# Na Windows:
 # venv\Scripts\activate
 ```
 
-2. Install dependencies:
+2. Zainstaluj zależności:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Configure the project (if needed):
-   - Edit `config/config.yaml` for API settings and model parameters
+### Krok 2: Konfiguracja (Opcjonalne)
 
-4. Generate sample data (for testing):
+Edytuj `config/config.yaml` jeśli chcesz zmienić:
+- Liczbę partii do pobrania
+- Zakres rankingów
+- Parametry modeli
+
+### Krok 3: Pobranie Danych
+
+**Opcja A: Pobierz rzeczywiste dane z Lichess** (zalecane):
+```bash
+# Upewnij się, że masz usernames w config/config.yaml
+python main.py --mode collect
+```
+
+**Opcja B: Wygeneruj przykładowe dane** (do testów):
 ```bash
 python generate_sample_data.py --num-games 1000
 ```
 
-5. Run the main script:
-```bash
-# Run full pipeline
-python main.py --mode all
+### Krok 4: Uruchomienie Pipeline
 
-# Or run individual steps
-python main.py --mode preprocess  # Only preprocess
-python main.py --mode features    # Only extract features
-python main.py --mode train        # Only train models
+**Pełny pipeline** (zbieranie danych → preprocessing → ekstrakcja cech → trenowanie):
+```bash
+python main.py --mode all
 ```
 
-**Note**: Remember to activate the virtual environment (`source venv/bin/activate`) before running any scripts or installing packages.
+**Lub osobne kroki**:
+```bash
+python main.py --mode preprocess  # Tylko preprocessing
+python main.py --mode features    # Tylko ekstrakcja cech
+python main.py --mode train        # Tylko trenowanie modeli
+```
 
-## Quick Start
+**Uwaga**: Pamiętaj o aktywacji środowiska wirtualnego (`source venv/bin/activate`) przed uruchomieniem skryptów.
 
-1. Activate venv: `source venv/bin/activate`
-2. Generate sample data: `python generate_sample_data.py`
-3. Run pipeline: `python main.py --mode all`
-4. Check results in `models/model_comparison.csv`
-5. (Optional) Force a specific model using:
-`python main.py --mode train --model-type logistic_regression`
+## Szybki Start
 
-## Usage
+```bash
+# 1. Aktywuj środowisko
+source venv/bin/activate
 
-### Collecting Data
+# 2. Zainstaluj zależności (jeśli jeszcze nie)
+pip install -r requirements.txt
+
+# 3. Pobierz dane (lub wygeneruj przykładowe)
+python main.py --mode collect
+# LUB
+python generate_sample_data.py
+
+# 4. Uruchom pełny pipeline
+python main.py --mode all
+
+# 5. Sprawdź wyniki
+cat models/model_comparison.csv
+```
+
+## Dokumentacja
+
+- **`DESC.md`**: Szczegółowy opis projektu, metodologii i podejścia
+- **`EXAMPLE.md`**: Przykład analizy na konkretnych danych z interpretacją wyników
+- **`README.md`**: Ten plik - instrukcja uruchomienia
+
+## Użycie
+
+### Zbieranie Danych
 ```python
 from src.data_collection.lichess_api import LichessDataCollector
 
@@ -94,101 +140,100 @@ collector = LichessDataCollector()
 games = collector.fetch_games(num_games=1000)
 ```
 
-### Training Model
+### Trenowanie Modeli
 ```python
 from src.models.trainer import ModelTrainer
 
 trainer = ModelTrainer()
-trainer.train()
+# Automatycznie trenuje i porównuje wszystkie modele
+comparator = trainer.train_and_compare_models(features_df)
 ```
 
-### Train with Logistic Regression
-`python main.py --mode train --model-type logistic_regression`
-
-### Train with Random Forest
-`python main.py --mode train --model-type random_forest`
-
-### Train with XGBoost (if installed)
-`python main.py --mode train --model-type xgboost`
-
-### Making Predictions
+### Przewidywanie Wyników
 ```python
 from src.models.predictor import GamePredictor
 
-predictor = GamePredictor()
-result = predictor.predict(moves, white_rating, black_rating)
+# Załaduj najlepszy model
+predictor = GamePredictor(model_path='models/best_model.pkl')
+
+# Przewiduj wynik
+result = predictor.predict(
+    moves=['e2e4', 'e7e5', 'g1f3'],
+    white_rating=1800,
+    black_rating=1750,
+    time_control='blitz'
+)
+
+print(f"Przewidywany wynik: {result['prediction']}")
+print(f"Pewność: {result.get('confidence', 'N/A')}")
 ```
 
 
-## Scientific Experiment: Full Moves Analysis
+## Eksperyment Naukowy: Analiza Wpływu Liczby Pełnych Ruchów
 
-The project includes a key experiment investigating how the number of full moves analyzed affects prediction accuracy.
+Projekt zawiera kluczowy eksperyment badający, jak liczba przeanalizowanych pełnych ruchów wpływa na dokładność predykcji.
 
-### Running the Experiment
+### Uruchomienie Eksperymentu
 
 ```bash
-# Run experiment with default fullmoves: 10, 20, 30
+# Eksperyment z domyślnymi wartościami: 10, 20, 30 pełnych ruchów
 python experiment_fullmoves.py
 
-# Custom fullmoves values
+# Własne wartości pełnych ruchów
 python experiment_fullmoves.py --fullmoves 5 10 15 20 25 30
 
-# Custom output directory
+# Własny katalog wyjściowy
 python experiment_fullmoves.py --output my_experiments
 ```
 
-### Experiment Output
+### Wyniki Eksperymentu
 
-After running, you'll find in the `experiments/` directory:
+Po uruchomieniu, w katalogu `experiments/` znajdziesz:
 
-1. **`results_by_fullmoves.csv`**: Detailed results for all models and fullmoves values
-2. **`fullmoves_experiment_results.png`**: Line plots comparing Accuracy, F1 Score, and ROC AUC
-3. **`fullmoves_experiment_table.png`**: Heatmap tables for quick comparison
+1. **`results_by_fullmoves.csv`**: Szczegółowe wyniki dla wszystkich modeli i wartości pełnych ruchów
+2. **`fullmoves_experiment_results.png`**: Wykresy liniowe porównujące Accuracy, F1 Score i ROC AUC
+3. **`fullmoves_experiment_table.png`**: Tabele heatmap do szybkiego porównania
 
-### What It Tests
+### Co Testuje Eksperyment
 
-- **10 full moves** (20 half-moves): Early game positions
-- **20 full moves** (40 half-moves): Mid-game positions
-- **30 full moves** (60 half-moves): More developed positions
+- **10 pełnych ruchów** (20 półruchów): Pozycje wczesnej gry
+- **20 pełnych ruchów** (40 półruchów): Pozycje środkowej gry
+- **30 pełnych ruchów** (60 półruchów): Bardziej rozwinięte pozycje
 
-The experiment trains all three models (Baseline, Logistic Regression, Random Forest) for each configuration and compares results.
+Eksperyment trenuje wszystkie trzy modele (Baseline, Regresja Logistyczna, Random Forest) dla każdej konfiguracji i porównuje wyniki.
 
-See `EXPERIMENT_DESCRIPTION.md` for detailed methodology and interpretation.
+Zobacz `DESC.md` i `EXAMPLE.md` dla szczegółowej metodologii i interpretacji wyników.
 
-## Visual Analysis
+## Analiza Wizualna
 
-Understand where your models make mistakes using generated Confusion Matrices.
+Zrozum, gdzie modele popełniają błędy, używając wygenerowanych macierzy pomyłek (Confusion Matrix).
 
-### Generating Reports
-Run the visualization script to evaluate all trained models:
+### Generowanie Raportów
+Uruchom skrypt wizualizacyjny, aby ocenić wszystkie wytrenowane modele:
 
 ```bash
 python reports/visualize_results.py
 ```
-This will create PNG heatmaps in the **reports/ directory**:
+
+To utworzy mapy cieplne PNG w katalogu **reports/**:
 
 - matrix_statistical_baseline.png
-
 - matrix_logistic_regression.png
-
 - matrix_random_forest.png
 
-### How to read the Confusion Matrix?
+### Jak czytać Macierz Pomyłek?
 
-**Y-Axis (True Label):** The actual result of the game.
+**Oś Y (True Label)**: Rzeczywisty wynik partii.
 
-**X-Axis (Predicted Label):** What the model predicted.
+**Oś X (Predicted Label)**: To, co przewidział model.
 
-**Diagonal:** Correct predictions (darker color is better).
+**Przekątna**: Poprawne przewidywania (ciemniejszy kolor = lepiej).
 
-**Off-diagonal:** Errors (e.g., if the "Draw" row is light, the model struggles to predict draws).
+**Poza przekątną**: Błędy (np. jeśli wiersz "Draw" jest jasny, model ma problemy z przewidywaniem remisów).
 
-## Data Sources
+## Źródła Danych
 
-- **Lichess API**: Public game database
-- **Position Evaluation**: python-chess library for position analysis
+- **Lichess API**: Publiczna baza danych partii szachowych
+- **Ocena Pozycji**: Biblioteka python-chess do analizy pozycji
 
-## License
-
-MIT
 

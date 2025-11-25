@@ -33,17 +33,14 @@ class FeatureExtractor:
         """
         features = {}
 
-        # Player rating features
         features['white_rating'] = game.get('white_rating', 1500)
         features['black_rating'] = game.get('black_rating', 1500)
         features['rating_diff'] = features['white_rating'] - features['black_rating']
         features['avg_rating'] = (features['white_rating'] + features['black_rating']) / 2
 
-        # Move-based features
         moves = game.get('moves', '').split()[:self.num_moves]
         features['num_moves'] = len(moves)
 
-        # Position evaluation features
         if moves:
             try:
                 if hasattr(self.position_evaluator, 'get_position_after_moves'):
@@ -67,12 +64,9 @@ class FeatureExtractor:
         else:
             self._set_empty_evals(features)
 
-        # Time control features
         time_control = game.get('time_control', '')
         features['time_control'] = self._parse_time_control(time_control)
 
-        # Przekazujemy wszystkie dostępne ruchy (lub pierwsze 20),
-        # a funkcja get_opening_name sama zdecyduje ile potrzebuje.
         raw_moves = game.get('moves', '').split()
         features['opening'] = self._identify_opening(raw_moves)
 
