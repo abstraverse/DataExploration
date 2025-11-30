@@ -6,6 +6,8 @@ Czy można przewidzieć wynik partii szachowej (wygrana białych, wygrana czarny
 
 W praktyce mamy dostęp do milionów partii szachowych zapisanych w formacie PGN. Z każdej partii możemy wyodrębnić pozycję z konkretnego momentu (np. po 10, 20 lub 30 pełnych ruchach) i na tej podstawie próbować przewidzieć końcowy wynik.
 
+![schemat](https://raw.githubusercontent.com/abstraverse/DataExploration/master/sketch-1764507756300.png)
+
 ## Dotychczasowe Rozwiązania
 
 ### Tradycyjne Podejścia
